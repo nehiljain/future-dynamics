@@ -1,20 +1,25 @@
 {
-    "image": "mcr.microsoft.com/devcontainers/universal:2",
-    "hostRequirements": {
-      "cpus": 4
+  "name": "dagster-mds-python-container",
+  "forwardPorts": [3000, 43309],
+  "image": "mcr.microsoft.com/devcontainers/universal:2",
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "32gb",
+    "storage": "64gb"
+  },
+  "waitFor": "onCreateCommand",
+  "updateContentCommand": "curl -sSL https://pdm-project.org/install-pdm.py | python3 - && pdm install",
+  "postCreateCommand": "",
+  "postStartCommand": "source /workspaces/future-dynamics/.venv/bin/activate",
+  "customizations": {
+    "codespaces": {
+      "openFiles": []
     },
-    "waitFor": "onCreateCommand",
-    "updateContentCommand": "python3 -m pip install -r requirements.txt",
-    "postCreateCommand": "",
-    "customizations": {
-      "codespaces": {
-        "openFiles": []
-      },
-      "vscode": {
-        "extensions": [
-          "ms-toolsai.jupyter",
-          "ms-python.python"
-        ]
-      }
+    "vscode": {
+      "extensions": [
+        "ms-toolsai.jupyter",
+        "ms-python.python"
+      ]
     }
+  }
   }
