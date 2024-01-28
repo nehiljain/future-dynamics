@@ -1,0 +1,5 @@
+# This file was automatically generated
+name: needful
+type: duckdb
+options:
+  filename: needful_things.duckdb

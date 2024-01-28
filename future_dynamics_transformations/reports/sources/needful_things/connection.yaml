@@ -1,0 +1,5 @@
+# This file was automatically generated
+name: needful_things
+type: duckdb
+options:
+  filename: /Users/nehiljain/code/data/future-dynamics/raw/hotel_pricer_ai.duckdb

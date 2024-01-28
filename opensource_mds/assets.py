@@ -1,29 +1,25 @@
-import subprocess
-import time
-import zipfile
-from tempfile import NamedTemporaryFile
-from typing import List, Tuple
 
+from typing import List
+import pendulum
+import pandas as pd
+import random
+import requests
+import asyncio
 import requests
 from dagster import (
     AssetExecutionContext,
-    AssetSpec,
     Backoff,
-    OpExecutionContext,
+    TimeWindowPartitionsDefinition,
     RetryPolicy,
     asset,
-    file_relative_path,
 )
-from dagster_dbt import DbtCliResource, dbt_assets
 from dagster_duckdb import DuckDBResource
-from dagster_embedded_elt.sling import (
-    SlingMode,
-    build_sling_asset,
-)
+from . import google_hotel_prices
 
+from dagster import Definitions
 from . import constants
-from .resources import CustomDagsterDbtTranslator, dbt_manifest_path
-
+import gspread
+from . import proxy_list
 retry_policy = RetryPolicy(
     max_retries=3,
     delay=0.2,  # 200ms
@@ -31,328 +27,222 @@ retry_policy = RetryPolicy(
 )
 
 
-def download_and_extract_data(
-    context: AssetExecutionContext, url: str
-) -> Tuple[List[str], float]:
-    with NamedTemporaryFile(suffix=".zip") as f:
-        start_time = time.time()
-        context.log.info("Downloading checklist data from {}".format(url))
-        r = requests.get(url)
-        context.log.info("Downloaded {} bytes".format(len(r.content)))
-        f.write(r.content)
-        f.seek(0)
 
-        with zipfile.ZipFile(f.name, "r") as zip_ref:
-            extracted_names = zip_ref.namelist()
-            zip_ref.extractall(
-                file_relative_path(__file__, "../data/raw/checklist_data")
-            )
-            end_time = time.time()
-            context.log.info(
-                "Extracted checklist data to {}".format(
-                    file_relative_path(__file__, "../raw/checklist_data")
-                )
-            )
-
-        return extracted_names, end_time - start_time
+# @asset
+# def cities(context: AssetExecutionContext) -> List[str]:
+#     """
+#     Pull in list of cities from makcorps.com api
+#     """
+#     return [
+#         "New York",
+#         "Toronto",
+#     ]
 
 
-@asset(compute_kind="python", group_name="raw_data")
-def checklist_2020(context: AssetExecutionContext):
-    extracted_names, elapsed_times = download_and_extract_data(
-        context, constants.CHECKLIST_2020
-    )
-    context.add_output_metadata(
-        metadata={
-            "names": extracted_names,
-            "num_files": len(extracted_names),
-            "elapsed_time": elapsed_times,
-        },
-    )
 
 
-@asset(compute_kind="python", group_name="raw_data")
-def checklist_2023(context: AssetExecutionContext):
-    extracted_names, elapsed_times = download_and_extract_data(
-        context, constants.CHECKLIST_2023
-    )
-    context.add_output_metadata(
-        metadata={
-            "names": extracted_names,
-            "num_files": len(extracted_names),
-            "elapsed_time": elapsed_times,
-        },
-    )
+# @asset
+# def get_hotel_price_today(
+#     context: AssetExecutionContext,
+#     get_hotel_ids
+# ) -> pd.DataFrame:
+#     """
+#     Pull in pricing data for all hotels in NYC from makcorps.com api
+#     """
+#     def parse_hotel_prices(json_data, checkin, checkout, hotel_id, now_timestamp):
+#         """
+#         Internal function to parse json from api and convert to df"""
+#         # Extracting the comparison data
+#         comparison_data = json_data.get('comparison', [[]])[0]
+
+#         transformed_data = [
+#           {
+#               "vendor": item.get(f"vendor{i+1}"),
+#               "price": item.get(f"price{i+1}"),
+#               "tax": item.get(f"tax{i+1}"),
+#           }
+#           for i, item in enumerate(comparison_data)
+#         ]
+#         # Creating DataFrame
+#         df = pd.DataFrame(transformed_data)
+#         df['checkin'] = checkin
+#         df['checkout'] = checkout
+#         df['hotel_id'] = hotel_id
+#         df['now_timestamp'] = now_timestamp
+#         return df
+#     url = "https://api.makcorps.com/hotel"
+#     params = {
+#         'rooms': 1,
+#         'adults': 2,
+#         'api_key': '65a063514bdc1a8110980170',
+#     }
+#     # checkin data april 12, 2024
+#     checkin = pendulum.datetime(2024, 4, 12)
+
+#     checkout = checkin.add(days=1)
+
+#     checkin_out_combos = [
+#         (checkin.add(days=i).to_date_string(), checkout.add(days=i).to_date_string())
+#         for i in range(1, 10)
+#     ]
+#     output = []
+#     for checkin, checkout in checkin_out_combos:
+#       params['checkin'] = checkin
+#       params['checkout'] = checkout
+#       for hotel_id in get_hotel_ids:
+#           context.log.info(f"Requesting data for hotel {hotel_id}")
+#           params['hotelid'] = hotel_id
+#           response = requests.get(url, params=params)
+#           context.log.info(f"Response: {response.status_code}, {response.text}")
+#           if response.status_code == 200:
+#               json_data = response.json()
+#               output.append(parse_hotel_prices(json_data, checkin, checkout, hotel_id, pendulum.now('UTC').to_datetime_string()))
+#           else:
+#               print(f"Error: {response.status_code}, {response.text}")
+#               return None
+#     return pd.concat(output)
 
 
-@asset(compute_kind="python", group_name="raw_data")
-def site_description_data(context: AssetExecutionContext):
-    extracted_names, elapsed_times = download_and_extract_data(
-        context, constants.SITE_DESCRIPTION_DATA
-    )
-    context.add_output_metadata(
-        metadata={
-            "names": extracted_names,
-            "num_files": len(extracted_names),
-            "elapsed_time": elapsed_times,
-        },
-    )
+# @asset
+# def get_city_makcorps_ids(
+#     context: AssetExecutionContext,
+#     cities
+# ) -> pd.DataFrame:
+#     """
+#     Pull in pricing data for all hotels in NYC from makcorps.com api
+#     """
+#     url = "https://api.makcorps.com/mapping"
+#     data = []
+
+#     for city in cities:
+#         params = {
+#             'api_key': '65a063514bdc1a8110980170',
+#             'name': city
+#         }
+#         response = requests.get(url, params=params)
+
+#         if response.status_code == 200:
+#             json_data = response.json()
+#             for item in json_data:
+#                 if item['type'] == 'GEO':
+#                     record = {
+#                         'city': city,
+#                         'id': item.get('document_id'),
+#                         'scope': item.get('scope'),
+#                         'name': item.get('name'),
+#                         'data_type': item.get('data_type'),
+#                         'coords': item.get('coords'),
+#                         'place_type': item.get('details', {}).get('placetype'),
+#                         'parent_name': item.get('details', {}).get('parent_name'),
+#                         'grandparent_id': item.get('details', {}).get('grandparent_name'),
+#                         'parent_id': item.get('details', {}).get('parent_id'),
+#                         'grandparent_id': item.get('details', {}).get('grandparent_id'),
+#                         'parent_place_type': item.get('details', {}).get('parent_place_type'),
+#                         'highlighted_name': item.get('details', {}).get('highlighted_name'),
+#                         'geo_name': item.get('details', {}).get('geo_name'),
+#                         'address': item.get('details', {}).get('address')
+#                     }
+#                     data.append(record)
+#         else:
+#             context.log.warn(f"Error for {city}: {response.status_code}, {response.text}")
+
+#     return pd.DataFrame(data)
 
 
-@asset(compute_kind="python", group_name="raw_data")
-def species_translation_data(context: AssetExecutionContext):
-    extracted_names, elapsed_times = download_and_extract_data(
-        context, constants.SPECIES_TRANSLATION_DATA
-    )
-    context.add_output_metadata(
-        metadata={
-            "names": extracted_names,
-            "num_files": len(extracted_names),
-            "elapsed_time": elapsed_times,
-        },
-    )
 
-
-@asset(
-    deps=[checklist_2020, checklist_2023],
-    compute_kind="duckdb",
-    group_name="prepared",
-    retry_policy=retry_policy,
+@asset(group_name="raw_data", io_manager_key="duckdb_io_manager",
+       retry_policy=retry_policy,
+      #  partitions_def=DailyPartitionsDefinition(start_date=pendulum.datetime(2024, 1, 21, 0, 0)),
+      #  metadata={
+      #     "partition_expr": "run_at"
+      #  }
 )
-def birds(context: AssetExecutionContext, duckdb: DuckDBResource):
-    cl2020 = file_relative_path(__file__, constants.CL_2020_FPATH)
-    cl2023 = file_relative_path(__file__, constants.CL_2023_FPATH)
-    with duckdb.get_connection() as conn:
-        conn.execute(
-            f"""CREATE OR REPLACE TABLE birds_2020_tmp AS (
-                    SELECT * FROM read_csv_auto('{cl2020}', sample_size=-1))
-            """
-        )
-        conn.execute(
-            f"CREATE OR REPLACE TABLE birds_2023_tmp AS (SELECT * FROM read_csv_auto('{cl2023}'))"
-        )
-        conn.execute(
-            """ CREATE OR REPLACE TABLE birds as (
-                 SELECT * from birds_2020_tmp
-                 UNION ALL
-                 SELECT * from birds_2023_tmp
-                )
-            """
-        )
-        nrows = conn.execute("SELECT COUNT(*) FROM birds").fetchone()[0]  # type: ignore
-
-        metadata = conn.execute(
-            "select * from duckdb_tables() where table_name = 'birds'"
-        ).pl()
-
-    context.log.info("Created birds table")
-    context.add_output_metadata(
-        metadata={
-            "num_rows": nrows,
-            "table_name": metadata["table_name"][0],
-            "datbase_name": metadata["database_name"][0],
-            "schema_name": metadata["schema_name"][0],
-            "column_count": metadata["column_count"][0],
-            "estimated_size": metadata["estimated_size"][0],
-        }
-    )
+def search_itineraries(
+    context: AssetExecutionContext
+) -> pd.DataFrame:
+    """
+    Pull in itineraries from google sheets
+    """
+    gc = gspread.service_account()
+    sh = gc.open("B2Bed Hotel Pricing Data")
+    worksheet = sh.get_worksheet(0)
+    data = worksheet.get_all_records()
+    def parse_date(x):
+      try:
+        return pendulum.from_format(x, "MMM D")
+      except ValueError:
+        return pendulum.from_format(x, "MMMM D")
+    df = pd.DataFrame(data)
+    df.rename(columns={'name': 'hotel_name'}, inplace=True)
+    # parse checkin using pendulum pendulum.from_format(df['checkin'], "MMM D")
+    df['clean_checkin'] = df['checkin'].apply(lambda x: parse_date(x))
+    df['clean_checkout'] = df['checkout'].apply(lambda x: parse_date(x))
+    df['checkin_date'] = df['checkin'].apply(lambda x: parse_date(x).to_date_string())
+    # df['run_at'] = pendulum.now('UTC').to_datetime_string()
+    # df['execution_at'] = context.asset_partition_key_for_input("search_itineraries")
+    df['length_of_stay'] = df.apply(lambda x: (x['clean_checkout'] - x['clean_checkin']).days, axis=1)
+    context.log.info(f"Data: df")
+    return df
 
 
-@asset(
-    deps=[species_translation_data],
-    compute_kind="duckdb",
-    group_name="prepared",
-    retry_policy=retry_policy,
-)
-def species(context: AssetExecutionContext, duckdb: DuckDBResource):
-    species = file_relative_path(__file__, constants.SPECIES_TRANSLATION_FPATH)
-    with duckdb.get_connection() as conn:
-        conn.execute(
-            f"""CREATE OR REPLACE TABLE species AS (
-                    SELECT * FROM read_csv_auto('{species}'))
-            """
-        )
-        nrows = conn.execute("SELECT COUNT(*) FROM species").fetchone()[0]  # type: ignore
-
-        metadata = conn.execute(
-            "select * from duckdb_tables() where table_name = 'species'"
-        ).pl()
-
-    context.add_output_metadata(
-        metadata={
-            "num_rows": nrows,
-            "table_name": metadata["table_name"][0],
-            "datbase_name": metadata["database_name"][0],
-            "schema_name": metadata["schema_name"][0],
-            "column_count": metadata["column_count"][0],
-            "estimated_size": metadata["estimated_size"][0],
-        }
-    )
-
-    context.log.info("Created species table")
+# @asset(partitions_def=HourlyPartitionsDefinition(start_date=pendulum.datetime(2024, 1, 21, 0, 0)),
+#       group_name="raw_data",
+#       retry_policy= RetryPolicy(
+#         max_retries=5,
+#         delay=5,  # 5s
+#         backoff=Backoff.EXPONENTIAL,
+#       ))
+# def https_proxies(
+#     context: AssetExecutionContext
+# ) -> pd.DataFrame:
+#     """Pull in https proxiesfrom free-proxy-list.net"""
+#     return proxy_list.get_https_proxies()
 
 
-@asset(
-    deps=[site_description_data],
-    compute_kind="duckdb",
-    group_name="prepared",
-    retry_policy=retry_policy,
-)
-def sites(context: AssetExecutionContext, duckdb: DuckDBResource):
-    sites = file_relative_path(__file__, constants.SITE_DATA_FPATH)
-    with duckdb.get_connection() as conn:
-        conn.execute(
-            f"""CREATE OR REPLACE TABLE sites AS (
-                    SELECT * FROM read_csv_auto('{sites}'))
-            """
-        )
-        nrows = conn.execute("SELECT COUNT(*) FROM sites").fetchone()[0]  # type: ignore
 
-        metadata = conn.execute(
-            "select * from duckdb_tables() where table_name = 'sites'"
-        ).pl()
-
-    context.add_output_metadata(
-        metadata={
-            "num_rows": nrows,
-            "table_name": metadata["table_name"][0],
-            "datbase_name": metadata["database_name"][0],
-            "schema_name": metadata["schema_name"][0],
-            "column_count": metadata["column_count"][0],
-            "estimated_size": metadata["estimated_size"][0],
-        }
-    )
-
-    context.log.info("Created sites table")
-
-
-@asset(group_name="raw_data", compute_kind="steampipe")
-def bird_toots_csv(context: AssetExecutionContext):
-    result = subprocess.run(
-        ["steampipe", "query", constants.STEAMPIPE_QUERY, "--output", "csv"],
-        stdout=subprocess.PIPE,
-    )
-    output = result.stdout.decode().strip()
-    toot_path = file_relative_path(__file__, "../data/raw/bird_toots.csv")
-    with open(toot_path, "w") as file:
-        file.write(output)
-
-    context.log.info("Created bird_toots file")
-
-
-@asset(
-    deps=[bird_toots_csv],
-    compute_kind="duckdb",
-    group_name="prepared",
-    retry_policy=retry_policy,
-)
-def bird_toots(context: AssetExecutionContext, duckdb: DuckDBResource):
-    fpath = file_relative_path(__file__, "../data/raw/bird_toots.csv")
-    with duckdb.get_connection() as conn:
-        conn.execute(
-            f"""CREATE OR REPLACE TABLE bird_toots AS (
-                    SELECT * FROM read_csv_auto('{fpath}'))
-            """
-        )
-        nrows = conn.execute("SELECT COUNT(*) FROM bird_toots").fetchone()[0]  # type: ignore
-
-        metadata = conn.execute(
-            "select * from duckdb_tables() where table_name = 'bird_toots'"
-        ).pl()
-
-    context.add_output_metadata(
-        metadata={
-            "num_rows": nrows,
-            "table_name": metadata["table_name"][0],
-            "datbase_name": metadata["database_name"][0],
-            "schema_name": metadata["schema_name"][0],
-            "column_count": metadata["column_count"][0],
-            "estimated_size": metadata["estimated_size"][0],
-        }
-    )
-
-    context.log.info("Created bird_toots table")
-
-
-tickets_raw = build_sling_asset(
-    AssetSpec(
-        key=["tickets_raw"],
-        group_name="raw_data",
-    ),
-    source_stream="tickets",
-    target_object="tickets_raw",
-    mode=SlingMode.FULL_REFRESH,
-)
-
-events_raw = build_sling_asset(
-    AssetSpec(key=["events_raw"], group_name="raw_data"),
-    source_stream="events",
-    target_object="events_raw",
-    mode=SlingMode.FULL_REFRESH,
-)
-
-
-@asset(
-    deps=[tickets_raw],
-    compute_kind="duckdb",
-    group_name="prepared",
-    retry_policy=retry_policy,
-)
-def tickets(context: AssetExecutionContext, duckdb: DuckDBResource):
-    with duckdb.get_connection() as conn:
-        conn.execute("CREATE OR REPLACE TABLE tickets AS (SELECT * FROM tickets_raw)")
-        nrows = conn.execute("SELECT COUNT(*) FROM tickets").fetchone()[0]  # type: ignore
-
-        metadata = conn.execute(
-            "select * from duckdb_tables() where table_name = 'tickets'"
-        ).pl()
-
-    context.add_output_metadata(
-        metadata={
-            "num_rows": nrows,
-            "table_name": metadata["table_name"][0],
-            "datbase_name": metadata["database_name"][0],
-            "schema_name": metadata["schema_name"][0],
-            "column_count": metadata["column_count"][0],
-            "estimated_size": metadata["estimated_size"][0],
-        }
-    )
-
-    context.log.info("Created tickets table")
-
-
-@asset(
-    deps=[events_raw],
-    compute_kind="duckdb",
-    group_name="prepared",
-    retry_policy=retry_policy,
-)
-def events(context: AssetExecutionContext, duckdb: DuckDBResource):
-    fpath = file_relative_path(__file__, "../data/raw/events.csv")
-    with duckdb.get_connection() as conn:
-        conn.execute("CREATE OR REPLACE TABLE events AS (SELECT * FROM events_raw)")
-        nrows = conn.execute("SELECT COUNT(*) FROM events ").fetchone()[0]  # type: ignore
-
-        metadata = conn.execute(
-            "select * from duckdb_tables() where table_name = 'events'"
-        ).pl()
-
-    context.add_output_metadata(
-        metadata={
-            "num_rows": nrows,
-            "table_name": metadata["table_name"][0],
-            "datbase_name": metadata["database_name"][0],
-            "schema_name": metadata["schema_name"][0],
-            "column_count": metadata["column_count"][0],
-            "estimated_size": metadata["estimated_size"][0],
-        }
-    )
-
-    context.log.info("Created events table")
-
-
-@dbt_assets(
-    manifest=dbt_manifest_path, dagster_dbt_translator=CustomDagsterDbtTranslator()
-)
-def dbt_birds(context: OpExecutionContext, dbt: DbtCliResource):
-    yield from dbt.cli(["build"], context=context).stream()
+@asset(partitions_def=TimeWindowPartitionsDefinition(start=pendulum.datetime(2024, 1, 21, 0, 0),
+                                                     cron_schedule="6 */6 * * *",
+                                                     fmt="%Y-%m-%d-%H-%M"),
+       group_name="raw_data",
+       io_manager_key="duckdb_io_manager",
+       metadata={
+          "partition_expr": "run_at"
+       },
+      retry_policy= RetryPolicy(
+        max_retries=3,
+        delay=60,  # 20s
+        backoff=Backoff.EXPONENTIAL,
+      ))
+async def hotel_prices(
+    context: AssetExecutionContext,
+    search_itineraries,
+    # https_proxies
+) -> pd.DataFrame:
+    """Captures price data for all hotels in search_itineraries. Both Mobile and Desktop Google hotel ads"""
+    # only run for sample 10 rows
+    inputs = search_itineraries[['hotel_name','checkin_date', 'length_of_stay']].to_dict(orient='records')
+    # context.log.info(f"Proxies: {https_proxies}")
+    # add proxy to inputs
+    # for inp in inputs:
+    #   record = https_proxies.sample(1)
+    #   server = f'https://{record["ip address"].values[0]}:{record["port"].values[0]}'
+    #   context.log.info(f"Using proxy server {server}")
+    #   inp['proxy_server'] = server
+    desktop_tasks = [google_hotel_prices.fetch_google_hotel_prices_desktop(**inp) for inp in inputs]
+    mobile_tasks = [google_hotel_prices.fetch_google_hotel_prices_mobile(**inp) for inp in inputs]
+    random.shuffle(desktop_tasks)
+    random.shuffle(mobile_tasks)
+    #combine both mobile and desktop list
+    tasks = desktop_tasks + mobile_tasks
+    # shuffle tasks to avoid getting blocked
+    random.shuffle(tasks)
+    results = await asyncio.gather(*tasks)
+    context.log.info(results)
+    df = pd.concat([pd.DataFrame(result) for result in results])
+    # add run date col with now datestring
+    df['run_date'] = pendulum.now('UTC').to_date_string()
+    # add run hour col with now hour
+    df['run_at'] = pendulum.now('UTC').to_datetime_string()
+    df['execution_at'] = context.asset_partition_key_for_output()
+    context.log.info(f"Data: {df.head()}")
+    return df[['hotel_name', 'checkin_date', 'length_of_stay', 'scrapped_url', 'text', 'run_date', 'run_at', 'execution_at']]

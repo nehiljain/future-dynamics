@@ -8,6 +8,9 @@ CL_2023_FPATH="../data/raw/checklist_data/PFW_all_2021_2023_June2023_Public.csv"
 SITE_DATA_FPATH="../data/raw/checklist_data/PFW_count_site_data_public_June2023.csv"
 SPECIES_TRANSLATION_FPATH="../data/raw/checklist_data/PFW_spp_translation_table_May2023.csv"
 
+DUCK_DB_FILE ="/Users/nehiljain/code/data/future-dynamics/raw/hotel_pricer_ai.duckdb"
+SCREENSHOTS_DPATH ="/Users/nehiljain/code/data/future-dynamics/raw/"
+
 STEAMPIPE_QUERY="""
 with data as (
         select
