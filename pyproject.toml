@@ -17,12 +17,16 @@ dependencies = [
     "gspread>=5.12.4",
     "duckdb>=0.9.2",
     "dbt-core>=1.7.5",
-    "jupyterlab>=4.0.11",
-    "nordvpn-switcher>=0.3.0",
+    "jupyterlab>=4.0.12",
     "dbt-duckdb>=1.7.1",
     "seaborn>=0.13.2",
     "plotly>=5.18.0",
-    "pygwalker>=0.4.4",
+    "dagster-slack>=0.22.1",
+    "dbt-snowflake>=1.7.1",
+    "dagster-postgres>=0.22.1",
+    "sqlalchemy>=1.4.51",
+    "snowflake-sqlalchemy>=1.5.1",
+    "pydantic>=2.6.1",
 ]
 requires-python = "==3.10.*"
 readme = "README.md"
@@ -33,4 +37,4 @@ license = {text = "MIT"}
 package-type = "application"
 
 [tool.dagster]
-module_name = "opensource_mds"
+module_name = "pipelines"

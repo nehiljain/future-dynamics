@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: gha
+    database: hotel_pricer_ai 
+    schema: public
+    tables:
+      - name: search_itineraries
+      - name: hotel_prices

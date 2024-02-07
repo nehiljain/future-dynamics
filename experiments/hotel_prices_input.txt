@@ -1,0 +1,50 @@
+Hotel Hayden__2024-03-31__1__2024-01-29->CheapTickets.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Closest Hotel;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->eDreams;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Freehand New York;;$203;; Booking.com;;4.2/5;;(1,783);; · 4-star hotel;;Pet-friendly · Restaurant;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->The Manhattan at Times Square Hotel;;$204;; IHG.com;;3.1/5;;(7,925);; · 3-star hotel;;Free cancellation · Pet-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotel Belleclaire;;$212;; Booking.com;;4.0/5;;(1,385);; · 3-star hotel;;Free cancellation · Pet-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hilton Garden Inn New York/Times Square Central;;$186;; Booking.com;;4.0/5;;(2,314);; · 3-star hotel;;Pool · Pet-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Pod 51;;$134;; Booking.com;;4.1/5;;(3,701);; · 3-star hotel;;Pet-friendly · Kid-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->The Gregorian Hotel;;$228;; Booking.com;;4.0/5;;(783);; · 3-star hotel;;Kid-friendly · Air conditioning;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Failed to load page Timeout 30000ms exceeded.
+Hotel Hayden__2024-03-31__1__2024-01-29->Traveluro;;Free cancellation until Feb 8;;24/7 Customer Service · Exclusive Deals;;$154;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Tripadvisor.com;;Free cancellation until Mar 22;;$154;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Holisto;;Free cancellation until Feb 8;;$159;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Booking.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotel Hayden;; Official Site;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Traveluro;;Free cancellation until Feb 8;;$154;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->GoSplitty;;Free cancellation until Feb 8;;$157;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Holisto;;Free cancellation until Feb 8;;$159;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Tripadvisor.com;;Free cancellation until Mar 22;;$154;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Super.com;;$200;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->liferewards.ai;;$185;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Despegar;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Booking.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Expedia.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Priceline;;Free cancellation until Mar 28;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->KAYAK.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Reserving.com;;Free cancellation until Mar 29;;$349;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->momondo.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Agoda;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotels.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Vio.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Vacations Made Easy;;Nightly price with taxes + fees;;$397;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Trip.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->BusinessHotels.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->goseek.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Musetrip;;$371;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Orbitz.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotels In America;;$347;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Travelocity.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotelscombined.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotwire.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->CheapTickets.com;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Closest Hotel;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->eDreams;;$320;;Visit site;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Freehand New York;;$203;; Booking.com;;4.2/5;;(1,783);; · 4-star hotel;;Pet-friendly · Restaurant;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->The Manhattan at Times Square Hotel;;$204;; IHG.com;;3.1/5;;(7,925);; · 3-star hotel;;Free cancellation · Pet-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hotel Belleclaire;;$212;; Booking.com;;4.0/5;;(1,385);; · 3-star hotel;;Free cancellation · Pet-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Holiday Inn Express New York City Times Square, an IHG Hotel;;$246;; Holiday Inn Express New York City Times Square, an IHG Hotel;;3.6/5;;(1,652);; · 3-star hotel;;Pet-friendly · Kid-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Hilton Garden Inn New York/Times Square Central;;$186;; Booking.com;;4.0/5;;(2,314);; · 3-star hotel;;Pool · Pet-friendly;;desktop
+Hotel Hayden__2024-03-31__1__2024-01-29->Pod 51;;$134;; Booking.com;;4.1/5;;(3,701);; · 3-star hotel;;Pet-friendly · Kid-friendly;;desktop
