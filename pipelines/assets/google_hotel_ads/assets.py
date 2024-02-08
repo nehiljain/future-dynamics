@@ -6,10 +6,9 @@ import pandas as pd
 import pendulum
 from dagster import (
     AssetExecutionContext,
-    AssetKey,
+    AssetIn,
     Backoff,
     RetryPolicy,
-    SourceAsset,
     TimeWindowPartitionsDefinition,
     asset,
 )
@@ -25,7 +24,7 @@ retry_policy = RetryPolicy(
     backoff=Backoff.EXPONENTIAL,
 )
 
-search_itineraries = SourceAsset(key=AssetKey("search_itineraries"))
+# search_itineraries = SourceAsset(key=AssetKey("gsheets", "search_itineraries"))
 
 
 @asset(
@@ -34,6 +33,7 @@ search_itineraries = SourceAsset(key=AssetKey("search_itineraries"))
         cron_schedule="6 */6 * * *",
         fmt="%Y-%m-%d-%H-%M",
     ),
+    ins={"search_itineraries": AssetIn(key="search_itineraries")},
     io_manager_key="duckdb_io_manager",
     metadata={"partition_expr": "run_at"},
     retry_policy=RetryPolicy(

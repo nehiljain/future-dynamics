@@ -4,7 +4,7 @@ from dagster import EnvVar, get_dagster_logger
 from dagster_dbt import DbtCliResource
 from dagster_duckdb import DuckDBResource
 
-duckdb_database = EnvVar("DUCK_DB_FILE")
+duckdb_database = EnvVar("DUCK_DB_FILE").get_value()
 
 duckdb_resource = DuckDBResource(
     database=duckdb_database,

@@ -23,7 +23,7 @@ defs = Definitions(
     assets=all_assets,
     resources={
         "duckdb_io_manager": DuckDBPandasIOManager(
-            database=EnvVar("DUCK_DB_FILE")
+            database=EnvVar("DUCK_DB_FILE").get_value()
         ),  # required
         "dbt": dbt_resource,
     },

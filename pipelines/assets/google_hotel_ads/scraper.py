@@ -155,7 +155,7 @@ async def fetch_google_hotel_prices_desktop(
                     prices.append(dict(price_obj))
                 sanitized_hotel_name = re.sub(r"[^A-Za-z0-9]", "-", hotel_name)
                 screenshot_filepath = Path(
-                    EnvVar("SCREENSHOTS_DIR_PATH"),
+                    EnvVar("SCREENSHOTS_DIR_PATH").get_value(),
                     f'desktop_full_page_screenshot__{sanitized_hotel_name}__{dest_checkin_date.format("YYYYMMDD")}__{pendulum.now("UTC").format("YYYYMMDDHHmm")}.png',
                 )
                 logger.info(f"Saving screenshot to {screenshot_filepath}")
@@ -298,7 +298,7 @@ async def fetch_google_hotel_prices_mobile(
 
                 sanitized_hotel_name = re.sub(r"[^A-Za-z0-9]", "-", hotel_name)
                 screenshot_filepath = Path(
-                    EnvVar("SCREENSHOTS_DIR_PATH"),
+                    EnvVar("SCREENSHOTS_DIR_PATH").get_value(),
                     f'mobile_full_page_screenshot__{sanitized_hotel_name}__{target_date.format("YYYYMMDD")}__{pendulum.now("UTC").format("YYYYMMDDHHmm")}.png',
                 )
                 logger.info(f"Saving screenshot to {screenshot_filepath}")

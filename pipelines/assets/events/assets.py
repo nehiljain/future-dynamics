@@ -14,9 +14,10 @@ retry_policy = RetryPolicy(
 
 @asset(
     partitions_def=daily_partitions,
-    key_prefix=["gsheets"],
+    # key_prefix=["gsheets"],
     io_manager_key="duckdb_io_manager",
     retry_policy=retry_policy,
+    metadata={"partition_expr": "run_at"},
 )
 def search_itineraries(context: AssetExecutionContext) -> pd.DataFrame:
     """
@@ -44,5 +45,25 @@ def search_itineraries(context: AssetExecutionContext) -> pd.DataFrame:
     df["length_of_stay"] = df.apply(
         lambda x: (x["clean_checkout"] - x["clean_checkin"]).days, axis=1
     )
+    df["run_at"] = pendulum.now("UTC").format("YYYY-MM-DD")
     context.log.info("Data: df")
     return df
+
+
+# @asset(
+#     partitions_def=daily_partitions,
+#     # key_prefix=["gsheets"],
+#     io_manager_key="duckdb_io_manager",
+#     retry_policy=retry_policy,
+#     metadata={"partition_expr": "run_at"},
+# )
+# def events(
+#     context: AssetExecutionContext,
+#     search_itineraries: pd.DataFrame,
+# ) -> pd.DataFrame:
+#     """
+#     Gets all the events from predicthq for the locations of the hotels in search_itineraries
+#     """
+#     hotel_names = search_itineraries["hotel_name"].unique()
+#     # get location for each hotel_name
+#     hotel_locations =
