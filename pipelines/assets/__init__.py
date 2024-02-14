@@ -1,9 +1,8 @@
 from typing import Any, Mapping
 
-from dagster import AssetExecutionContext, AssetKey, load_assets_from_package_module
-from dagster_dbt import DagsterDbtTranslator, DbtCliResource, dbt_assets
+from dagster import AssetKey, load_assets_from_package_module
+from dagster_dbt import DagsterDbtTranslator
 
-from ..resources import DBT_PROJECT_DIR
 from . import events, google_hotel_ads
 
 EVENTS = "events"
@@ -29,10 +28,10 @@ class CustomDagsterDbtTranslator(DagsterDbtTranslator):
         return "prepared"
 
 
-@dbt_assets(
-    manifest=DBT_PROJECT_DIR.joinpath("target", "manifest.json"),
-    # io_manager_key="warehouse_io_manager",
-    dagster_dbt_translator=CustomDagsterDbtTranslator(),
-)
-def hotel_prices_dbt_assets(context: AssetExecutionContext, dbt: DbtCliResource):
-    yield from dbt.cli(["build"], context=context).stream()
+# @dbt_assets(
+#     manifest=DBT_PROJECT_DIR.joinpath("target", "manifest.json"),
+#     # io_manager_key="warehouse_io_manager",
+#     dagster_dbt_translator=CustomDagsterDbtTranslator(),
+# )
+# def hotel_prices_dbt_assets(context: AssetExecutionContext, dbt: DbtCliResource):
+#     yield from dbt.cli(["build"], context=context).stream()

@@ -35,7 +35,7 @@ retry_policy = RetryPolicy(
     ),
     ins={"search_itineraries": AssetIn(key="search_itineraries")},
     io_manager_key="duckdb_io_manager",
-    metadata={"partition_expr": "run_at"},
+    metadata={"partition_expr": "execution_at"},
     retry_policy=RetryPolicy(
         max_retries=3,
         delay=60,  # 20s
@@ -47,17 +47,18 @@ async def hotel_prices(
     search_itineraries,
 ) -> pd.DataFrame:
     """Captures price data for all hotels in search_itineraries. Both Mobile and Desktop Google hotel ads"""
-    # only run for sample 10 rows
-    inputs = search_itineraries[
-        ["hotel_name", "checkin_date", "length_of_stay"]
-    ].to_dict(orient="records")
-    # context.log.info(f"Proxies: {https_proxies}")
-    # add proxy to inputs
-    # for inp in inputs:
-    #   record = https_proxies.sample(1)
-    #   server = f'https://{record["ip address"].values[0]}:{record["port"].values[0]}'
-    #   context.log.info(f"Using proxy server {server}")
-    #   inp['proxy_server'] = server
+
+    key_range = context.asset_partition_key_range_for_input("search_itineraries")
+    context.log.info(f"Running hotel_prices for {key_range.end}")
+    # context.pdb.set_trace()
+    # search_itineraries.execution_at.value_counts()
+    # get latest search_itineraries data by filtering the run_at date
+    inputs = (
+        search_itineraries.filter(search_itineraries["execution_at"] == key_range.end)
+        .loc[:, ["hotel_name", "checkin_date", "length_of_stay"]]
+        .to_dict(orient="records")
+    )
+
     desktop_tasks = [fetch_google_hotel_prices_desktop(**inp) for inp in inputs]
     mobile_tasks = [fetch_google_hotel_prices_mobile(**inp) for inp in inputs]
     random.shuffle(desktop_tasks)

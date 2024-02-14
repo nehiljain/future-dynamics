@@ -14,10 +14,9 @@ retry_policy = RetryPolicy(
 
 @asset(
     partitions_def=daily_partitions,
-    # key_prefix=["gsheets"],
     io_manager_key="duckdb_io_manager",
     retry_policy=retry_policy,
-    metadata={"partition_expr": "run_at"},
+    metadata={"partition_expr": "execution_at"},
 )
 def search_itineraries(context: AssetExecutionContext) -> pd.DataFrame:
     """
@@ -45,9 +44,22 @@ def search_itineraries(context: AssetExecutionContext) -> pd.DataFrame:
     df["length_of_stay"] = df.apply(
         lambda x: (x["clean_checkout"] - x["clean_checkin"]).days, axis=1
     )
-    df["run_at"] = pendulum.now("UTC").format("YYYY-MM-DD")
+    df["run_at"] = pendulum.now("UTC").to_datetime_string()
+    df["execution_at"] = context.asset_partition_key_for_output()
     context.log.info("Data: df")
     return df
+
+
+# def get_location(hotel_name):
+#     params = {
+#         "q": hotel_name,
+#         "serp_api_key": EnvVar("SERPAPI_KEY").get_value(),
+#         "limit": "1",
+#     }
+
+#     search = GoogleSearch(params)
+#     results = search.get_dict()
+#     return
 
 
 # @asset(
@@ -64,6 +76,6 @@ def search_itineraries(context: AssetExecutionContext) -> pd.DataFrame:
 #     """
 #     Gets all the events from predicthq for the locations of the hotels in search_itineraries
 #     """
-#     hotel_names = search_itineraries["hotel_name"].unique()
+#     hotel_names = search_itineraries["hotel_name"].unique().tolist()
 #     # get location for each hotel_name
-#     hotel_locations =
+#     hotel_locations = [get_location(hotel_name) for hotel_name in hotel_names]
