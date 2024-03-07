@@ -1,25 +1,20 @@
 
-from typing import List
-import pendulum
-import pandas as pd
-import random
-import requests
 import asyncio
-import requests
+import random
+
+import gspread
+import pandas as pd
+import pendulum
 from dagster import (
     AssetExecutionContext,
     Backoff,
-    TimeWindowPartitionsDefinition,
     RetryPolicy,
+    TimeWindowPartitionsDefinition,
     asset,
 )
-from dagster_duckdb import DuckDBResource
+
 from . import google_hotel_prices
 
-from dagster import Definitions
-from . import constants
-import gspread
-from . import proxy_list
 retry_policy = RetryPolicy(
     max_retries=3,
     delay=0.2,  # 200ms
@@ -150,12 +145,16 @@ retry_policy = RetryPolicy(
 
 
 
-@asset(group_name="raw_data", io_manager_key="duckdb_io_manager",
-       retry_policy=retry_policy,
-      #  partitions_def=DailyPartitionsDefinition(start_date=pendulum.datetime(2024, 1, 21, 0, 0)),
-      #  metadata={
-      #     "partition_expr": "run_at"
-      #  }
+@asset(
+    group_name="raw_data",
+    io_manager_key="duckdb_io_manager",
+    retry_policy=retry_policy,
+    # partitions_def=TimeWindowPartitionsDefinition(
+    #     start=pendulum.datetime(2024, 1, 21, 0, 0),
+    #     cron_schedule="6 */6 * * *",
+    #     fmt="%Y-%m-%d-%H-%M",
+    # ),
+    # metadata={"partition_expr": "execution_at"},
 )
 def search_itineraries(
     context: AssetExecutionContext
@@ -177,11 +176,13 @@ def search_itineraries(
     # parse checkin using pendulum pendulum.from_format(df['checkin'], "MMM D")
     df['clean_checkin'] = df['checkin'].apply(lambda x: parse_date(x))
     df['clean_checkout'] = df['checkout'].apply(lambda x: parse_date(x))
-    df['checkin_date'] = df['checkin'].apply(lambda x: parse_date(x).to_date_string())
-    # df['run_at'] = pendulum.now('UTC').to_datetime_string()
-    # df['execution_at'] = context.asset_partition_key_for_input("search_itineraries")
+    df["checkin_date"] = df["checkin"].apply(lambda x: parse_date(x).to_date_string())
     df['length_of_stay'] = df.apply(lambda x: (x['clean_checkout'] - x['clean_checkin']).days, axis=1)
-    context.log.info(f"Data: df")
+    df["run_at"] = pendulum.now("UTC").to_datetime_string()
+    # df["execution_at"] = context.asset_partition_key_for_output()
+    df["execution_at"] = pendulum.now("UTC").to_datetime_string()
+
+    context.log.info("Data: df")
     return df
 
 
@@ -220,7 +221,17 @@ async def hotel_prices(
 ) -> pd.DataFrame:
     """Captures price data for all hotels in search_itineraries. Both Mobile and Desktop Google hotel ads"""
     # only run for sample 10 rows
-    inputs = search_itineraries[['hotel_name','checkin_date', 'length_of_stay']].to_dict(orient='records')
+    latest_searches = search_itineraries[
+        search_itineraries["execution_at"] == search_itineraries["execution_at"].max()
+    ]
+    latest_searches = latest_searches.drop_duplicates(
+        subset=["hotel_name", "checkin_date", "length_of_stay", "created_at"]
+    )
+    inputs = latest_searches[["hotel_name", "checkin_date", "length_of_stay"]].to_dict(
+        orient="records"
+    )
+
+    context.log.info(f"Inputs: {inputs}")
     # context.log.info(f"Proxies: {https_proxies}")
     # add proxy to inputs
     # for inp in inputs:

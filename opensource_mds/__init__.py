@@ -1,13 +1,12 @@
 from dagster import (
     Definitions,
-    load_assets_from_modules,
-    define_asset_job,
-    ScheduleDefinition,
     build_schedule_from_partitioned_job,
+    define_asset_job,
+    load_assets_from_modules,
 )
-
-from . import assets, resources, constants
 from dagster_duckdb_pandas import DuckDBPandasIOManager
+
+from . import assets, constants, resources
 
 all_assets = load_assets_from_modules([assets])
 duckdb_resource = resources.duckdb_resource

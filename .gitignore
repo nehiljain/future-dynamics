@@ -168,3 +168,12 @@ cython_debug/
 #.idea/
 # All folders starting with tmp
 tmp*
+data/
+*.out
+
+# dbt
+dbt_modules/
+dbt_packages/
+
+# mac
+.DS_Store
